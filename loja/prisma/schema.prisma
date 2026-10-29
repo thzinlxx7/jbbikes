@@ -1,0 +1,77 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+enum Role { USER ADMIN }
+enum OrderStatus { AGUARDANDO_PAGAMENTO PREPARANDO ENVIADO CHEGOU }
+enum WStatus { PENDENTE PAGO }
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(USER)
+  refCode      String   @unique
+  referredById String?
+  referredBy   User?    @relation("Ref", fields: [referredById], references: [id])
+  referrals    User[]   @relation("Ref")
+  resetHash    String?
+  resetExpires DateTime?
+  createdAt    DateTime @default(now())
+  orders       Order[]
+  commissions  Commission[]
+  withdrawals  Withdrawal[]
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  description String    @default("")
+  price       Int
+  image       String?
+  active      Boolean   @default(true)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  productName String
+  quantity    Int
+  total       Int
+  address     String
+  status      OrderStatus @default(AGUARDANDO_PAGAMENTO)
+  paid        Boolean     @default(false)
+  mpPaymentId String?
+  createdAt   DateTime    @default(now())
+  commission  Commission?
+}
+
+model Commission {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  amount    Int
+  createdAt DateTime @default(now())
+}
+
+model Withdrawal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int
+  pixKey    String
+  status    WStatus  @default(PENDENTE)
+  createdAt DateTime @default(now())
+}

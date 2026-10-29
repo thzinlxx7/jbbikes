@@ -1,0 +1,2 @@
+export const brl = (c) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+export const STATUS = { AGUARDANDO_PAGAMENTO: 'Aguardando pagamento', PREPARANDO: 'Preparando', ENVIADO: 'Enviado', CHEGOU: 'Chegou' };
